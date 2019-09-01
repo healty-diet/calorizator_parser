@@ -78,7 +78,7 @@ def parse_calorizator_page(page: requests.Response) -> List[Dict[str, Union[str,
             "name": columns[1].a.string.strip(),
             "protein": columns[2].string.strip(),
             "fat": columns[3].string.strip(),
-            "hydrocarbonates": columns[4].string.strip(),
+            "carbohydrates": columns[4].string.strip(),
             "calories": columns[5].string.strip(),
         }
 
