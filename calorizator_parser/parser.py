@@ -103,7 +103,7 @@ def wait():
     time.sleep(wait_interval)
 
 
-def main():
+def main(args):
     """ Main parser function. """
     page_num = get_calorizator_pages_amount()
 
@@ -114,9 +114,5 @@ def main():
 
         wait()
 
-    with open("result.json", "w") as file:
+    with open(args["output"], "w") as file:
         file.write(json.dumps(result_entries))
-
-
-if __name__ == "__main__":
-    main()
