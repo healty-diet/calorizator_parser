@@ -1,5 +1,5 @@
 """ Crawler for calorizator site. """
-from typing import List, Dict, Union
+from typing import List, Dict
 import json
 import time
 import random
@@ -44,7 +44,15 @@ def get_calorizator_page(page_idx: int) -> requests.Response:
     return response
 
 
-def parse_calorizator_page(page: requests.Response) -> List[Dict[str, Union[str, float]]]:
+def parse_float(data: str) -> float:
+    """ Parses float from string. If parsing failed, returns 0.0 """
+    try:
+        return float(data.strip())
+    except ValueError:
+        return 0.0
+
+
+def parse_calorizator_page(page: requests.Response) -> Dict[str, Dict[str, float]]:
     """ Parses the calorizator page and extracts the calories data. """
     main_content = get_main_content(page)
 
@@ -70,19 +78,19 @@ def parse_calorizator_page(page: requests.Response) -> List[Dict[str, Union[str,
     if not main_table:
         raise CalorizatorApiError("Not found main table on page {}".format(page))
 
-    result = []
+    result = {}
     for entry in main_table.find("tbody").find_all("tr"):
         columns = entry.find_all("td")
 
+        name = columns[1].a.string.strip()
         parsed_entry = {
-            "name": columns[1].a.string.strip(),
-            "protein": columns[2].string.strip(),
-            "fat": columns[3].string.strip(),
-            "carbohydrates": columns[4].string.strip(),
-            "calories": columns[5].string.strip(),
+            "protein": parse_float(columns[2].string),
+            "fat": parse_float(columns[3].string),
+            "carbohydrates": parse_float(columns[4].string),
+            "calories": parse_float(columns[5].string),
         }
 
-        result.append(parsed_entry)
+        result[name] = parsed_entry
 
     return result
 
@@ -107,12 +115,13 @@ def main(args):
     """ Main parser function. """
     page_num = get_calorizator_pages_amount()
 
-    result_entries: List[Dict[str, Union[str, float]]] = []
+    result_entries: Dict[str, Dict[str, float]] = {}
     for page_idx in range(page_num):
         page = get_calorizator_page(page_idx)
-        result_entries += parse_calorizator_page(page)
+        page_data = parse_calorizator_page(page)
+        result_entries.update(page_data)
 
         wait()
 
-    with open(args["output"], "w") as file:
+    with open(args.output, "w") as file:
         file.write(json.dumps(result_entries))
