@@ -1,5 +1,5 @@
 """ Crawler for calorizator site. """
-from typing import List, Dict
+from typing import Dict
 import json
 import time
 import random
